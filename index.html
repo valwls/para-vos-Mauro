@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>para vos mauro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@300;600;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #F7F6E5;
+            --accent-red: #DA4848;
+            --accent-blue: #76D2DB;
+            --dark-purple: #36064D;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--dark-purple);
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3rem;
+            color: var(--accent-red);
+            text-shadow: 2px 2px 0px var(--accent-blue);
+            text-align: center;
+        }
+
+        .player-section { display: none; }
+        .player-section.active { display: block; }
+
+        .vinyl-container {
+            width: 220px;
+            height: 220px;
+            background: repeating-radial-gradient(#222, #000 5px);
+            border-radius: 50%;
+            margin: 15px auto;
+            border: 8px solid var(--dark-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: spin 4s linear infinite;
+            animation-play-state: paused;
+        }
+
+        .vinyl-container.playing {
+            animation-play-state: running;
+        }
+
+        .vinyl-label {
+            width: 80px;
+            height: 80px;
+            background-color: var(--accent-red);
+            border-radius: 50%;
+            border: 4px solid white;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        #now-playing {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.6rem;
+            color: var(--accent-red);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .song-item {
+            background: white;
+            border: 2px solid var(--dark-purple);
+            margin-bottom: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        .song-item:hover {
+            background: var(--accent-blue);
+        }
+
+        .song-item.active-song {
+            border-color: var(--accent-red);
+            background: #fff5f5;
+        }
+
+        /* 🔥 BOTÓN CENTRADO */
+        .btn-pause {
+            background: var(--dark-purple);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 10px auto 30px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<audio id="main-audio" controls playsinline></audio>
+
+<h1>Para un apasionado de la música...</h1>
+
+<div id="player-ui" class="player-section">
+    <div id="now-playing"></div>
+    <div id="vinyl" class="vinyl-container">
+        <div class="vinyl-label"></div>
+    </div>
+    <button class="btn-pause" onclick="togglePlay()" id="play-btn">PAUSAR</button>
+</div>
+
+<div id="song-list"></div>
+
+<script>
+
+const songs = [
+    { name: "Like I'm Gonna Lose You", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/meghan.mp3" },
+    { name: "Bonsai", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/bonsai.mp3" },
+    { name: "La Mirada", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/lamirada.mp3" },
+    { name: "Can't Take My Eyes Off You", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/canttake.mp3" },
+    { name: "Everybody Loves Somebody", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/deanmartin.mp3" },
+    { name: "Love Maybe", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/lovemaybe.mp3" },
+    { name: "Hacela Corta Morocho", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/hacelacorta.mp3" },
+    { name: "Loco Lindo", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/locolindo.mp3" },
+    { name: "One Of The Girls", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/oneofthegirls.mp3" },
+    { name: "Cuando tus ojos me ven - Uni", url: "https://raw.githubusercontent.com/valwls/para-vos-Mauro/main/uni.mp3" }
+];
+
+let currentIndex = -1;
+const audio = document.getElementById('main-audio');
+const vinyl = document.getElementById('vinyl');
+const playerUI = document.getElementById('player-ui');
+const listDiv = document.getElementById('song-list');
+
+songs.forEach((song, index) => {
+    const div = document.createElement('div');
+    div.className = 'song-item';
+    div.innerHTML = `<span>${song.name}</span> <span>▶</span>`;
+    div.onclick = () => playSong(index);
+    listDiv.appendChild(div);
+});
+
+function playSong(index) {
+    currentIndex = index;
+    const song = songs[index];
+
+    playerUI.classList.add('active');
+    document.getElementById('now-playing').innerText = "Sonando: " + song.name;
+
+    document.querySelectorAll('.song-item').forEach(el => el.classList.remove('active-song'));
+    document.getElementById('song-list').children[index].classList.add('active-song');
+
+    audio.src = song.url;
+    audio.play();
+
+    vinyl.classList.add('playing');
+}
+
+function togglePlay() {
+    if (audio.paused) {
+        audio.play();
+        vinyl.classList.add('playing');
+        document.getElementById('play-btn').innerText = "PAUSAR";
+    } else {
+        audio.pause();
+        vinyl.classList.remove('playing');
+        document.getElementById('play-btn').innerText = "REPRODUCIR";
+    }
+}
+
+audio.onended = () => {
+    if (currentIndex + 1 < songs.length) {
+        playSong(currentIndex + 1);
+    }
+};
+
+</script>
+
+</body>
+</html>

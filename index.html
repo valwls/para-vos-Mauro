@@ -101,7 +101,7 @@
 </head>
 <body>
 
-    <audio id="main-audio"></audio>
+    <audio id="main-audio" playsinline></audio>
 
     <h1>Para un apasionado de la música...</h1>
 
@@ -114,14 +114,10 @@
     </div>
 
     <div class="playlist-container">
-        <div id="song-list">
-            </div>
+        <div id="song-list"></div>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE CANCIONES
-        // He puesto tu link de Drive ya convertido en la primera. 
-        // Para las demás, solo cambia el ID_AQUÍ.
         const songs = [
             { name: "1. La mirada - Bhavi & LOUTA", url: "https://docs.google.com/uc?export=download&id=1xPsnxfUMhtUfiWNkl4H8qG2e7yDQP2F1" },
             { name: "2. Can't take my eyes off you - Morten Harket", url: "https://docs.google.com/uc?export=download&id=1NX7AVRtJocRFyiKYzCxPZRgVaz6LvZeR" },
@@ -141,7 +137,6 @@
         const playerUI = document.getElementById('player-ui');
         const listDiv = document.getElementById('song-list');
 
-        // Generar lista
         songs.forEach((song, index) => {
             const div = document.createElement('div');
             div.className = 'song-item';
@@ -160,17 +155,23 @@
             currentIndex = index;
             const song = songs[currentIndex];
             
-            // UI
             playerUI.classList.add('active');
             document.getElementById('now-playing').innerText = "Sonando: " + song.name;
             document.querySelectorAll('.song-item').forEach(el => el.classList.remove('active-song'));
             document.getElementById(`song-${index}`).classList.add('active-song');
 
-            // Audio
             audio.src = song.url;
-            audio.play();
-            vinyl.classList.add('playing');
-            document.getElementById('play-btn').innerText = "PAUSAR";
+            
+            // CORRECCIÓN PARA MÓVILES: Manejo de promesa
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    vinyl.classList.add('playing');
+                    document.getElementById('play-btn').innerText = "PAUSAR";
+                }).catch(error => {
+                    console.log("Reproducción automática prevenida");
+                });
+            }
         }
 
         function togglePlay() {
@@ -185,7 +186,6 @@
             }
         }
 
-        // AUTO-PLAY: Al terminar, salta a la siguiente
         audio.onended = function() {
             if (currentIndex + 1 < songs.length) {
                 playSong(currentIndex + 1);
